@@ -1,10 +1,10 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-
+import serverAuth from '../../../../lib/serverAuth';
 import prismadb from '../../../../lib/prismadb';
 import { MAX_ANSWER_LENGTH } from 'shared/constants/surveysConfig';
 
 interface AnswerData {
-  answersData: { questionId: string; answer?: string }[];
+  answersData: { questionId: string; answer?: string}[];
 }
 
 export async function getSurveyData(surveyId: string) {
@@ -41,7 +41,7 @@ export default async function handler(
     const requestMethod = req.method;
 
     const { id } = req.query;
-
+    const session = await serverAuth(req, res);
     switch (requestMethod) {
       case 'GET': {
         const survey = await getSurveyData(id as string);
@@ -54,6 +54,8 @@ export default async function handler(
           return res.status(400).end();
         }
 
+
+
         await prismadb.answer.create({
           data: {
             survey: {
@@ -61,6 +63,11 @@ export default async function handler(
                 id: id as string,
               },
             },
+            user: {
+              connect: {
+                id: session.currentUser.id,
+              },
+            }, 
             answerData: {
               create: answersData.map((answerData) => ({
                 providedAnswer: answerData.answer,

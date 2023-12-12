@@ -18,13 +18,13 @@ export const useSurveyResultsManager = (initialData: SurveyWithAnswers) => {
   const [isDataLoading, setIsDataLoading] = useState<boolean>(false);
   const [surveyData, setSurveyData] = useState<SurveyWithAnswers>();
   const [mappedAnswersData, setMappedAnswersData] = useState<MappedAnswers>({});
-
+  const [filterUserName] = useState<string | undefined>('');
   const { copy } = useCopyToClipboard();
   const { t } = useTranslation('surveyAnswer');
 
   const fillSurveyData = useCallback((surveyData: SurveyWithAnswers) => {
     const mappedDataByQuestion: MappedAnswers = {};
-
+  
     surveyData.answers.forEach((answer) => {
       answer.answerData.forEach((answerData) => {
         const existingQuestion = mappedDataByQuestion[answerData.questionId];
@@ -48,19 +48,21 @@ export const useSurveyResultsManager = (initialData: SurveyWithAnswers) => {
                 date: answer.createdAt,
               },
             ],
+            filterUserId: undefined,
           };
         }
       });
     });
-
+  
     setSurveyData(surveyData);
     setMappedAnswersData(mappedDataByQuestion);
   }, []);
+  
 
   const getSurveyData = useCallback(async () => {
     setIsDataLoading(true);
     const surveyData = await getFetch<SurveyWithAnswers>(
-      `/api/survey/${surveyId}`
+      `/api/survey/${surveyId}?userName=${filterUserName}`
     );
 
     if (!surveyData) {
@@ -72,7 +74,7 @@ export const useSurveyResultsManager = (initialData: SurveyWithAnswers) => {
     setIsDataLoading(false);
 
     toast.success(t('refreshSuccess'));
-  }, [surveyId, router, t, fillSurveyData]);
+  }, [surveyId, router, t, fillSurveyData, filterUserName]);
 
   useEffect(() => {
     if (!surveyId) {

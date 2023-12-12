@@ -96,7 +96,6 @@ model Answer {
   userId     String?  @db.ObjectId
   createdAt  DateTime @default(now())
   surveyId   String   @db.ObjectId
-
   answerData AnswerData[]
 
   user   User?  @relation(fields: [userId], references: [id], onDelete: Cascade)
